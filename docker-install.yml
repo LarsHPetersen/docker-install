@@ -1,0 +1,48 @@
+---
+- name: install docker
+  hosts: all
+  become: true
+  tasks:
+    - name: install required packages
+      apt:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - lsb-release
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: adding docker's oficial GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: adding repository docker
+      apt_repository:
+        repo: "deb https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable"
+        state: present
+
+    - name: install docker
+      apt:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: starting the docker service.
+      service:
+        name: docker
+        state: started
+        enabled: yes
+  handlers:
+    - name: restart docker
+      service: 
+        name: docker 
+        state: restarted
